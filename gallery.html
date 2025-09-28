@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Галерея зайцев - Все фото</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #000;
+            color: #fff;
+        }
+        
+        .nav-link {
+            position: relative;
+        }
+        
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: #fff;
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(255, 255, 255, 0.1);
+        }
+        
+        .fade-enter-active, .fade-leave-active {
+            transition: opacity 0.3s ease;
+        }
+        
+        .fade-enter-from, .fade-leave-to {
+            opacity: 0;
+        }
+    </style>
+</head>
+<body class="bg-black text-white min-h-screen">
+    <div id="app">
+        <nav class="bg-black/80 backdrop-blur-md border-b border-white/10 sticky top-0 z-50">
+            <div class="max-w-6xl mx-auto px-4">
+                <div class="flex justify-between items-center py-4">
+                    <div class="flex items-center space-x-3">
+                        <a href="../index.html" class="text-xl font-semibold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">Галерея зайцев</a>
+                    </div>
+                    <div class="hidden md:flex space-x-8">
+                        <a href="../index.html" class="nav-link text-gray-400 hover:text-white transition-colors duration-300 font-medium">Главная</a>
+                        <a href="gallery.html" class="nav-link text-white active font-medium">Галерея</a>
+                        <a href="facts.html" class="nav-link text-gray-400 hover:text-white transition-colors duration-300 font-medium">Факты</a>
+                    </div>
+                    <div class="md:hidden">
+                        <button @click="toggleMobileMenu" class="text-gray-400 hover:text-white focus:outline-none transition-colors duration-300">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div v-show="mobileMenuOpen" class="md:hidden bg-black/95 backdrop-blur-lg py-4 px-4 border-t border-white/10">
+                <a href="../index.html" class="block py-3 text-gray-400 hover:text-white transition-colors duration-300 font-medium border-l-2 border-transparent pl-4">Главная</a>
+                <a href="gallery.html" class="block py-3 text-white font-medium border-l-2 border-white pl-4">Галерея</a>
+                <a href="facts.html" class="block py-3 text-gray-400 hover:text-white transition-colors duration-300 font-medium border-l-2 border-transparent pl-4">Факты</a>
+            </div>
+        </nav>
+
+        <main class="min-h-screen">
+            <div class="max-w-6xl mx-auto px-4 py-12">
+                <section class="text-center mb-12">
+                    <h1 class="text-5xl font-bold mb-6 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">Галерея зайцев</h1>
+                    <p class="text-xl text-gray-300 max-w-2xl mx-auto">Здесь собраны все зайцы, которые есть на сайте. Можно посмотреть поближе.</p>
+                </section>
+
+                <section class="mb-12">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div v-for="(image, index) in galleryImages" :key="index" class="bg-white/10 border border-white/15 rounded-2xl overflow-hidden card-hover cursor-pointer" @click="openModal(image)">
+                            <img :src="image.url" :alt="image.alt" class="w-full h-72 object-cover">
+                            <div class="p-6">
+                                <p class="text-gray-300 font-medium">{{ image.caption }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="text-center">
+                    <button @click="loadMoreImages" class="bg-white text-black font-semibold py-4 px-8 rounded-xl hover:bg-gray-100 transition-colors duration-300">
+                        Показать еще
+                    </button>
+                </section>
+            </div>
+        </main>
+
+        <div v-if="modalOpen" class="fixed inset-0 bg-black/95 backdrop-blur-lg flex items-center justify-center z-50 p-4">
+            <div class="max-w-4xl w-full">
+                <div class="relative">
+                    <button @click="closeModal" class="absolute -top-16 right-0 text-gray-400 hover:text-white transition-colors duration-300 bg-white/10 backdrop-blur-md rounded-full p-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                    <img :src="selectedImage.url" :alt="selectedImage.alt" class="w-full max-h-[80vh] object-contain rounded-2xl">
+                    <div class="mt-6 text-center">
+                        <p class="text-xl font-semibold">{{ selectedImage.caption }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="bg-black border-t border-white/10 py-12">
+            <div class="max-w-6xl mx-auto px-4">
+                <div class="text-center text-gray-400">
+                    <p class="text-lg font-medium">Галерея зайцев • 2023</p>
+                    <p class="mt-2">Просто сайт про зайцев, ничего особенного.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const { createApp, ref } = Vue;
+
+        createApp({
+            setup() {
+                const mobileMenuOpen = ref(false);
+                const modalOpen = ref(false);
+                const selectedImage = ref({});
+                
+                const galleryImages = ref([
+                    {
+                        url: '../images/1.jpg',
+                        alt: 'Заяц в траве',
+                        caption: 'Зайчик сидит в траве и выглядит довольно обыкновенно'
+                    },
+                    {
+                        url: '../images/2.jpg',
+                        alt: 'Заяц с морковкой',
+                        caption: 'Зайчик ест морковку. Типичное занятие для зайца'
+                    },
+                    {
+                        url: '../images/3.jpg',
+                        alt: 'Заяц прыгает',
+                        caption: 'Зайчик прыгает. Наверное, куда-то торопится'
+                    },
+                    {
+                        url: '../images/4.jpg',
+                        alt: 'Заяц спит',
+                        caption: 'Зайчик спит. Выглядит мирно и спокойно'
+                    },
+                    {
+                        url: '../images/5.jpg',
+                        alt: 'Заяц умывается',
+                        caption: 'Зайчик умывается. Чистота важна даже для зайцев'
+                    },
+                    {
+                        url: '../images/6.jpg',
+                        alt: 'Заяц в снегу',
+                        caption: 'Зайчик в снегу. Зимой зайцы становятся белыми'
+                    }
+                ]);
+                
+                const toggleMobileMenu = () => {
+                    mobileMenuOpen.value = !mobileMenuOpen.value;
+                };
+                
+                const openModal = (image) => {
+                    selectedImage.value = image;
+                    modalOpen.value = true;
+                };
+                
+                const closeModal = () => {
+                    modalOpen.value = false;
+                };
+                
+                const loadMoreImages = () => {
+                    const newImages = [
+                        {
+                            url: '../images/7.jpg',
+                            alt: 'Заяц в огороде',
+                            caption: 'Зайчик в огороде. Наверное, ищет что-то вкусное'
+                        },
+                        {
+                            url: '../images/8.jpg',
+                            alt: 'Заяц с друзьями',
+                            caption: 'Несколько зайцев вместе. Редкое зрелище'
+                        }
+                    ];
+                    
+                    galleryImages.value = [...galleryImages.value, ...newImages];
+                };
+                
+                return {
+                    mobileMenuOpen,
+                    modalOpen,
+                    selectedImage,
+                    galleryImages,
+                    toggleMobileMenu,
+                    openModal,
+                    closeModal,
+                    loadMoreImages
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
